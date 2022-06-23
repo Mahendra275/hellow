@@ -6,7 +6,7 @@ index a527089..4f09728 100644
  
      use sled::{Db, Tree};
  
--    use crate::make_tests;
+-    use crate::make_te;
 -
      static mut COUNT: usize = 0;
  
