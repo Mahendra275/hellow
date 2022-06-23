@@ -1,0 +1,123 @@
+diff --git a/src/database/keyvalue.rs b/src/database/keyvalue.rs
+index a527089..4f09728 100644
+--- a/src/database/keyvalue.rs
++++ b/src/database/keyvalue.rs
+@@ -428,8 +428,6 @@ mod test {
+ 
+     use sled::{Db, Tree};
+ 
+-    use crate::make_tests;
+-
+     static mut COUNT: usize = 0;
+ 
+     lazy_static! {
+@@ -468,9 +466,9 @@ mod test {
+         }
+     }
+     
+-    make_tests![
+-        @getter get_tree(),
+-        @tests(
++    run_tests_with_constructor![
++        getter get_tree(),
++        tests(
+             test_script_pubkey,
+             test_batch_script_pubkey,
+             test_iter_script_pubkey,
+diff --git a/src/database/memory.rs b/src/database/memory.rs
+index 2938249..1985636 100644
+--- a/src/database/memory.rs
++++ b/src/database/memory.rs
+@@ -482,7 +482,6 @@ impl ConfigurableDatabase for MemoryDatabase {
+ 
+ #[cfg(test)]
+ mod test {
+-    use crate::make_tests;
+ 
+     use super::MemoryDatabase;
+ 
+@@ -490,9 +489,9 @@ mod test {
+         MemoryDatabase::new()
+     }
+ 
+-    make_tests![
+-        @getter get_tree(),
+-        @tests(
++    run_tests_with_constructor![
++        getter get_tree(),
++        tests(
+             test_script_pubkey,
+             test_batch_script_pubkey,
+             test_iter_script_pubkey,
+diff --git a/src/database/mod.rs b/src/database/mod.rs
+index c420b96..ef273b6 100644
+--- a/src/database/mod.rs
++++ b/src/database/mod.rs
+@@ -219,19 +219,6 @@ pub(crate) trait DatabaseUtils: Database {
+ 
+ impl<T: Database> DatabaseUtils for T {}
+ 
+-#[macro_export]
+-#[doc(hidden)]
+-macro_rules! make_tests {
+-    (@getter $fn_name:ident(), @tests ( $($x:tt) , + $(,)? )) => {
+-        $(
+-          #[test]
+-          fn $x()
+-          {
+-            $crate::database::test::$x($fn_name());
+-          }
+-        )+
+-    };
+-}
+ 
+ #[cfg(test)]
+ pub mod test {
+diff --git a/src/database/sqlite.rs b/src/database/sqlite.rs
+index caa0867..8942972 100644
+--- a/src/database/sqlite.rs
++++ b/src/database/sqlite.rs
+@@ -976,7 +976,7 @@ pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
+ 
+ #[cfg(test)]
+ pub mod test {
+-    use crate::{database::SqliteDatabase, make_tests};
++    use crate::{database::SqliteDatabase};
+     use std::time::{SystemTime, UNIX_EPOCH};
+ 
+     fn get_database() -> SqliteDatabase {
+@@ -986,9 +986,9 @@ pub mod test {
+         SqliteDatabase::new(String::from(dir.to_str().unwrap()))
+     }
+ 
+-    make_tests![
+-        @getter get_database(),
+-        @tests(
++    run_tests_with_constructor![
++        getter get_database(),
++        tests(
+             test_script_pubkey,
+             test_batch_script_pubkey,
+             test_iter_script_pubkey,
+diff --git a/src/testutils/mod.rs b/src/testutils/mod.rs
+index 0de6088..7671322 100644
+--- a/src/testutils/mod.rs
++++ b/src/testutils/mod.rs
+@@ -393,3 +393,17 @@ pub mod helpers {
+         (wallet, descriptors, txid)
+     }
+ }
++
++#[macro_export]
++#[doc(hidden)]
++macro_rules! run_tests_with_constructor {
++    (getter $fn_name:ident(), tests ( $($x:tt) , + $(,)? )) => {
++        $(
++          #[test]
++          fn $x()
++          {
++            $crate::database::test::$x($fn_name());
++          }
++        )+
++    };
++}
